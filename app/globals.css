@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #4a0a00;
+  --foreground: #f6ead8;
+  --tatva-maroon-deep: #320700;
+  --tatva-maroon: #4a0a00;
+  --tatva-maroon-rich: #5c1206;
+  --tatva-maroon-light: #6e1a10;
+  --tatva-cream: #f6ead8;
+  --tatva-cream-muted: #d8c2aa;
+  --tatva-cream-soft: #ebded0;
+  --tatva-terracotta: #8b2e18;
+  --tatva-gold: #c59b6d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-maroon-deep: var(--tatva-maroon-deep);
+  --color-maroon: var(--tatva-maroon);
+  --color-maroon-rich: var(--tatva-maroon-rich);
+  --color-maroon-light: var(--tatva-maroon-light);
+  --color-cream: var(--tatva-cream);
+  --color-cream-muted: var(--tatva-cream-muted);
+  --color-cream-soft: var(--tatva-cream-soft);
+  --color-terracotta: var(--tatva-terracotta);
+  --color-gold: var(--tatva-gold);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  background-color: #4a0a00;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #4a0a00;
+  color: #f6ead8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #320700;
+}
+::-webkit-scrollbar-thumb {
+  background: #6e1a10;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8b2e18;
+}
+
+/* Subtle wood/plaster grain texture overlay for richness */
+.bg-tatva-grain {
+  background-image: radial-gradient(rgba(246, 234, 216, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.tatva-entrance {
+  --door-scroll: 3200px;
+  --reveal-scroll: 800px;
+  --tour-scroll: 18000px;
+  --exit-scroll: 600px;
+  position: relative;
+  height: calc(100svh + var(--door-scroll) + var(--reveal-scroll) + var(--tour-scroll) + var(--exit-scroll));
+  background: #292f33;
+}
+.tatva-entrance-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; color: #f6ead8; }
+.tatva-entrance-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; }
+.tatva-scene-canvas { opacity: 0; }
+.tatva-door-poster { background: url('/entrance-poster.webp') center / cover no-repeat; }
+.tatva-entrance-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #0005, transparent 25%, transparent 55%, #0008); }
+.tatva-entrance-header { position: absolute; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 30px 4%; }
+.tatva-entrance-brand { display: flex; flex-direction: column; align-items: center; font-size: 34px; font-weight: 600; line-height: 1.2; }
+.tatva-entrance-brand span { font-size: 9px; letter-spacing: .4em; padding-left: .4em; margin-top: 6px; }
+.tatva-entrance-skip { font-size: 10px; text-transform: uppercase; letter-spacing: .2em; border-bottom: 1px solid #f6ead850; padding: 10px 0; }
+.tatva-entrance-skip span { margin-left: 12px; }
+.tatva-entrance-intro, .tatva-entrance-room-title { position: absolute; left: 5%; bottom: 17%; max-width: 42%; pointer-events: none; text-shadow: 0 2px 24px #0007; }
+.tatva-entrance-intro p, .tatva-entrance-room-title p { font-size: 10px; text-transform: uppercase; letter-spacing: .25em; margin-bottom: 20px; }
+.tatva-entrance-intro h2, .tatva-entrance-room-title h2 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(32px, 4.5vw, 72px); line-height: 1.08; letter-spacing: -.035em; }
+.tatva-entrance-intro em, .tatva-entrance-room-title em { font-weight: 400; color: #e1cbb3; }
+.tatva-entrance-hint, .tatva-entrance-room-title > span { display: block; margin-top: 28px; font-size: 10px; text-transform: uppercase; letter-spacing: .2em; }
+.tatva-entrance-hint > span { display: inline-block; margin-left: 14px; font-size: 18px; }
+.tatva-entrance-room-title { opacity: 0; }
+.tatva-entrance-footer { position: absolute; bottom: 28px; left: 5%; right: 5%; display: flex; justify-content: space-between; gap: 20px; font-size: 9px; text-transform: uppercase; letter-spacing: .18em; opacity: .7; }
+.tatva-entrance-progress { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: #f6ead820; }
+.tatva-entrance-progress > div { height: 100%; background: #dcc2a4; transform: scaleX(0); transform-origin: left; }
+.tatva-entrance[data-static='true'] { height: 100svh; }
+.tatva-entrance a:focus-visible { outline: 2px solid #f6ead8; outline-offset: 8px; }
+@media (max-width: 640px) {
+  .tatva-entrance { --door-scroll: 2600px; --reveal-scroll: 600px; --tour-scroll: 15000px; --exit-scroll: 500px; }
+  .tatva-entrance-header { padding: 24px 6%; }
+  .tatva-entrance-intro, .tatva-entrance-room-title { left: 7%; bottom: 14%; max-width: 86%; }
+  .tatva-entrance-intro h2, .tatva-entrance-room-title h2 { font-size: 38px; }
+  .tatva-entrance-intro p, .tatva-entrance-room-title p { margin-bottom: 12px; font-size: 9px; }
+  .tatva-entrance-footer { left: 7%; right: 7%; font-size: 8px; }
+  .tatva-entrance-footer span:last-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tatva-entrance { height: 100svh; }
+  .tatva-door-poster, .tatva-entrance-intro { display: none; }
+  .tatva-entrance-stage { background: url('/showcase-frames/frame_0000.webp') center / cover no-repeat; }
+  .tatva-entrance-room-title { opacity: 1; }
+  .tatva-entrance-room-title > span { display: none; }
 }
