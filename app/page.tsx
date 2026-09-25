@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { TatvaEntrance } from "@/components/ui/tatva-entrance";
 import { Button } from "@/components/ui/button";
+import { PricingSection } from "@/components/ui/pricing-section";
+import { ABOUT_TATTVA_CONTENT } from "@/lib/pricing-data";
 
 export default function Home() {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -69,6 +71,9 @@ export default function Home() {
             </a>
             <a href="#materiality" className="hover:text-[#F6EAD8] transition-colors">
               Materiality
+            </a>
+            <a href="#pricing" className="hover:text-[#F6EAD8] transition-colors">
+              Packages & Pricing
             </a>
             <a href="#contact" className="hover:text-[#F6EAD8] transition-colors">
               Inquire
@@ -148,67 +153,23 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             <div className="lg:col-span-5">
               <span className="inline-block text-[11px] uppercase tracking-[0.35em] text-[#C59B6D] font-medium mb-4">
-                The Philosophy • तत्व दर्शन
+                About TATTVA • तत्व परिचय
               </span>
-              <h2 className="text-3xl sm:text-5xl font-light tracking-wide text-[#F6EAD8] leading-[1.15] mb-6">
-                Rooted in essence, shaped by the cadence of living.
+              <h2
+                className="text-3xl sm:text-5xl font-normal tracking-tight text-[#F6EAD8] leading-[1.15] mb-6"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                {ABOUT_TATTVA_CONTENT.title}
               </h2>
-              <p className="text-sm tracking-[0.25em] text-[#F6EAD8]/70 uppercase font-light">
-                Ghar Ko Do Naya Roop — where timeless Indian craft meets
-                contemporary architectural poise.
+              <p className="text-xs sm:text-sm tracking-[0.25em] text-[#C59B6D] uppercase font-light">
+                {ABOUT_TATTVA_CONTENT.tagline}
               </p>
             </div>
 
             <div className="lg:col-span-7 space-y-6 text-[#F6EAD8]/85 font-light text-base sm:text-lg leading-relaxed">
-              <p>
-                In classical Indian thought, <strong className="font-semibold text-[#F6EAD8]">तत्व (Tatva)</strong> signifies
-                the elemental principles comprising the physical and metaphysical world—earth, water, fire, air, and space.
-                At our studio, we translate this primal balance into interior architecture that breathes.
-              </p>
-              <p>
-                We reject synthetic laminates and disposable trends in favor of tactile honesty: hand-planed Indian teak,
-                breathable hydraulic lime plaster, chisel-dressed Kota stone, unlacquered brass joinery, and organic handloom
-                textiles. Every home we conceive is tailored to the quiet cadence of human life.
-              </p>
-
-              {/* Studio Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-[#F6EAD8]/15 mt-8">
-                <div>
-                  <div className="text-3xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight">
-                    120<span className="text-[#C59B6D]">+</span>
-                  </div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#F6EAD8]/60 mt-1">
-                    Bespoke Sanctuaries
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-3xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight">
-                    14
-                  </div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#F6EAD8]/60 mt-1">
-                    Design Accolades
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-3xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight">
-                    100<span className="text-[#C59B6D]">%</span>
-                  </div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#F6EAD8]/60 mt-1">
-                    Custom Materiality
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-3xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight">
-                    18<span className="text-[#C59B6D]">Y</span>
-                  </div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#F6EAD8]/60 mt-1">
-                    Architectural Legacy
-                  </div>
-                </div>
-              </div>
+              {ABOUT_TATTVA_CONTENT.paragraphs.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
             </div>
           </div>
         </section>
@@ -366,6 +327,11 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* 
+          6. PACKAGES & PRICING (MANASVINI)
+        */}
+        <PricingSection />
 
         {/* 
           6. CONTACT & CONSULTATION CTA
