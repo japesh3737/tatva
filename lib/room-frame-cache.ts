@@ -14,7 +14,7 @@ export function createRoomFrameCache(onReady: () => void) {
   const fetchFrame = (index: number) => {
     const existing = compressed.get(index);
     if (existing) return existing;
-    const request = fetch(`/room-hd-frames/frame_${String(index).padStart(4, "0")}.webp`, {
+    const request = fetch(`/room-stream-v2/frame_${String(index).padStart(4, "0")}.webp`, {
       signal: controller.signal,
     }).then((response) => {
       if (!response.ok) throw new Error(`Frame ${index}: ${response.status}`);
@@ -41,7 +41,9 @@ export function createRoomFrameCache(onReady: () => void) {
       }
     }
     for (const index of wanted) {
-      if (decoding.size >= 3) break;
+      // Reserve one download slot for the visible frame instead of making it
+      // wait behind speculative frames from the previous scroll position.
+      if (decoding.size >= (index === center ? 4 : 3)) continue;
       if (index < 0 || index >= 480 || decoded.has(index) || decoding.has(index) || failed.has(index)) continue;
       decoding.add(index);
       void fetchFrame(index).then((blob) => createImageBitmap(blob)).then((bitmap) => {
@@ -77,7 +79,14 @@ export function createRoomFrameCache(onReady: () => void) {
       center = index;
       active = lookAhead;
       pump();
-      return decoded.get(index);
+      const exact = decoded.get(index);
+      if (exact) return { image: exact, index };
+      // While a frame downloads, advance using an already decoded neighbour.
+      // Stay on the approach side and within six frames to avoid scene jumps.
+      const nearby = [...decoded.keys()]
+        .filter(key => Math.abs(key - index) <= 6 && (direction > 0 ? key <= index : key >= index))
+        .sort((a, b) => Math.abs(a - index) - Math.abs(b - index))[0];
+      return nearby === undefined ? undefined : { image: decoded.get(nearby)!, index: nearby };
     },
     dispose() {
       disposed = true;

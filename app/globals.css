@@ -111,7 +111,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .tatva-entrance { height: 100svh; }
   .tatva-door-poster, .tatva-entrance-intro { display: none; }
-  .tatva-entrance-stage { background: url('/room-hd-frames/frame_0000.webp') center / cover no-repeat; }
+  .tatva-entrance-stage { background: url('/room-stream-v2/frame_0000.webp') center / cover no-repeat; }
   .tatva-entrance-room-title { opacity: 1; }
   .tatva-entrance-room-title > span { display: none; }
 }

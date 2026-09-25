@@ -94,7 +94,7 @@ export function TatvaEntrance() {
     let scrollDistances = [3200, 800, 18000, 600];
     const schedule = () => { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(render); };
     const doors = frameCache("entrance-frames", 241, schedule);
-    // Preserve every original 1080p frame, with mild offline sharpening.
+    // Preserve every 1080p frame with smaller, delivery-optimized files.
     // Keep nearby frames decoded so a single step does not require video seeking.
     const rooms = createRoomFrameCache(schedule);
     const drawCover = (image: HTMLImageElement | ImageBitmap) => {
@@ -128,8 +128,8 @@ export function TatvaEntrance() {
       const renderedDoor = showDoor ? doorIndex : -1;
       // Hold the last complete composition until the requested frames are decoded.
       // No decoder seeks, green-screen processing, or repeated drawing while idle.
-      if (room && (!showDoor || door) && (dirty || renderedDoor !== lastDoor || roomIndex !== lastRoom)) {
-        drawCover(room);
+      if (room && (!showDoor || door) && (dirty || renderedDoor !== lastDoor || room.index !== lastRoom)) {
+        drawCover(room.image);
         if (door && showDoor) {
           context.globalAlpha = 1 - clamp((progress - 0.39) / 0.03);
           drawCover(door);
@@ -138,7 +138,7 @@ export function TatvaEntrance() {
         canvas.style.opacity = "1";
         posterRef.current!.style.opacity = "0";
         lastDoor = renderedDoor;
-        lastRoom = roomIndex;
+        lastRoom = room.index;
         dirty = false;
       }
       introRef.current!.style.opacity = String(motion.matches ? 0 : 1 - clamp(progress / 0.15));
