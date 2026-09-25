@@ -289,7 +289,7 @@ export const PACKAGE_COMPARISON_DATA: ComparisonRow[] = [
     feature: "Execution Supervision",
     designOnly: "Not included",
     designExecution: "Included",
-    turnkey: "Not specified"
+    turnkey: "Included"
   },
   {
     feature: "Procurement Coordination",

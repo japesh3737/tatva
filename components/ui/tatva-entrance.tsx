@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createRoomFrameCache } from "@/lib/room-frame-cache";
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 /** A bounded look-ahead cache, rather than decoding hundreds of images at once. */
-function frameCache(folder: string, count: number, onReady: () => void, capacity = 20) {
+function frameCache(folder: string, count: number, onReady: () => void, capacity = 20, prioritizeCurrent = false) {
   const images = new Map<number, HTMLImageElement>();
   const pending = new Map<number, HTMLImageElement>();
   const failed = new Set<number>();
@@ -27,7 +28,7 @@ function frameCache(folder: string, count: number, onReady: () => void, capacity
       pending.set(index, image);
       image.onload = async () => {
         try { await image.decode(); } catch { /* onload still provides a drawable image */ }
-        if (disposed) return;
+        if (disposed || pending.get(index) !== image) return;
         pending.delete(index);
         images.set(index, image);
         // Keep decoded memory bounded, including when jumping far along the page.
@@ -45,6 +46,16 @@ function frameCache(folder: string, count: number, onReady: () => void, capacity
       direction = index === center ? direction : Math.sign(index - center);
       center = index;
       radius = lookAhead ? Math.min(8, Math.floor((capacity - 1) / 2)) : 0;
+      if (prioritizeCurrent) {
+        // On a jump or reversal, do not queue the visible frame behind old work.
+        pending.forEach((image, index) => {
+          if (Math.abs(index - center) <= Math.max(2, radius)) return;
+          pending.delete(index);
+          image.onload = null;
+          image.onerror = null;
+          image.src = "";
+        });
+      }
       pump();
       return images.get(index);
     },
@@ -83,13 +94,15 @@ export function TatvaEntrance() {
     let scrollDistances = [3200, 800, 18000, 600];
     const schedule = () => { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(render); };
     const doors = frameCache("entrance-frames", 241, schedule);
-    // Use the original 1080p frames, avoiding the extra 720p resize/compression.
-    // A smaller decoded cache keeps memory close to the previous version.
-    const rooms = frameCache("showcase-frames", 480, schedule, 10);
-    const drawCover = (image: HTMLImageElement) => {
-      const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
-      const width = image.naturalWidth * scale;
-      const height = image.naturalHeight * scale;
+    // Preserve every original 1080p frame, with mild offline sharpening.
+    // Keep nearby frames decoded so a single step does not require video seeking.
+    const rooms = createRoomFrameCache(schedule);
+    const drawCover = (image: HTMLImageElement | ImageBitmap) => {
+      const sourceWidth = image instanceof HTMLImageElement ? image.naturalWidth : image.width;
+      const sourceHeight = image instanceof HTMLImageElement ? image.naturalHeight : image.height;
+      const scale = Math.max(canvas.width / sourceWidth, canvas.height / sourceHeight);
+      const width = sourceWidth * scale;
+      const height = sourceHeight * scale;
       context.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
     };
     function render(now: number) {
@@ -101,7 +114,9 @@ export function TatvaEntrance() {
       const atDoor = progress < 0.40;
       const step = difference * (1 - Math.exp(-dt / (atDoor ? 0.18 : 0.24)));
       const speedLimit = atDoor ? 0.16 : 0.06;
-      progress = motion.matches ? 1 : progress + Math.max(-dt * speedLimit, Math.min(dt * speedLimit, step));
+      const roomOnly = target >= 0.42 && progress >= 0.42;
+      progress = motion.matches ? 1 : roomOnly ? target
+        : progress + Math.max(-dt * speedLimit, Math.min(dt * speedLimit, step));
       if (Math.abs(target - progress) < 0.00005) progress = target;
       const doorProgress = clamp(progress / 0.40);
       const roomProgress = motion.matches ? 0 : clamp((progress - 0.48) / 0.50);
@@ -202,7 +217,7 @@ export function TatvaEntrance() {
         <div ref={roomTitleRef} className="tatva-entrance-room-title">
           <p>Welcome inside</p>
           <h2>Room to live.<br /><em>Space to belong.</em></h2>
-          <span>Keep scrolling to explore</span>
+          <span>Scroll to explore at your own pace</span>
         </div>
         <div className="tatva-entrance-footer" aria-hidden="true"><span>Architecture · Interiors · Tatva</span><span>A world within ↓</span></div>
         <div className="tatva-entrance-progress"><div ref={progressRef} /></div>

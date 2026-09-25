@@ -47,16 +47,6 @@ export function PricingSection() {
     description: ""
   });
 
-  // Preload all local images across all packages for 0-lag transitions
-  useEffect(() => {
-    PRICING_PACKAGES.forEach((pkg) => {
-      pkg.images.forEach((imgObj) => {
-        const img = new Image();
-        img.src = imgObj.src;
-      });
-    });
-  }, []);
-
   // Continuous Navigation across all package images
   const navigateNext = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -106,11 +96,15 @@ export function PricingSection() {
   }, [isRequestMode, activeIndex, imageIndex, activeImages.length]);
 
   const handlePrevPackage = (e?: React.MouseEvent) => {
-    navigatePrev(e);
+    e?.stopPropagation();
+    setActiveIndex((prev) => (prev - 1 + PRICING_PACKAGES.length) % PRICING_PACKAGES.length);
+    setImageIndex(0);
   };
 
   const handleNextPackage = (e?: React.MouseEvent) => {
-    navigateNext(e);
+    e?.stopPropagation();
+    setActiveIndex((prev) => (prev + 1) % PRICING_PACKAGES.length);
+    setImageIndex(0);
   };
 
   const handlePrevImage = (e: React.MouseEvent) => {
@@ -231,6 +225,8 @@ export function PricingSection() {
                       }`}
                     >
                       <img
+                        loading="lazy"
+                        decoding="async"
                         src={imgObj.src}
                         alt={imgObj.alt}
                         className="w-full h-full object-cover object-center"
@@ -662,7 +658,7 @@ export function PricingSection() {
                   {/* Card Header & Number */}
                   <div className="flex items-center justify-between border-b border-[#F6EAD8]/15 pb-4 mb-6">
                     <span className="text-xs font-mono tracking-widest text-[#C59B6D]">
-                      {pkg.number} // PACKAGE
+                      {pkg.number}{" // PACKAGE"}
                     </span>
                     <span className="text-[10px] font-mono tracking-widest text-[#C59B6D] px-2 py-0.5 bg-[#320700] border border-[#C59B6D]/30 uppercase">
                       {pkg.indicator}
@@ -959,10 +955,10 @@ export function PricingSection() {
             className="text-3xl sm:text-4xl font-normal text-[#F6EAD8] mb-3"
             style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
           >
-            Let's understand your space.
+            Let&apos;s understand your space.
           </h3>
           <p className="text-sm text-[#F6EAD8]/80 font-light max-w-xl mx-auto leading-relaxed mb-8">
-            Tell us about your space, requirements and timeline. We'll help you determine the right approach.
+            Tell us about your space, requirements and timeline. We&apos;ll help you determine the right approach.
           </p>
           <button
             onClick={() => {
