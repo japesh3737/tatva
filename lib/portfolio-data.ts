@@ -35,15 +35,17 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
       "A modern workplace planned around collaboration, focus and efficient movement. Warm materials and layered lighting create a calm, professional environment.",
   },
   {
-    id: "atelier-lane-showroom",
+    
+    id: "petal-and-stone-salon",
     number: "02",
-    name: "Atelier Lane Showroom",
+    name: "Petal & Stone Salon",
     category: "Retail & Showrooms",
-    location: "Lower Parel, Mumbai",
+    location: "Andheri West, Mumbai",
     year: "2024",
     description:
-      "A retail showroom designed to guide visitors through the product story. Flexible display zones and focused lighting keep the merchandise at the centre.",
+      "A calm, modern salon planned around comfortable styling stations and easy movement. Soft textures, arched mirrors and one bold floral wall give it a clear identity.",
   },
+  
   {
     id: "saffron-and-slate-cafe",
     number: "03",
