@@ -8,6 +8,8 @@ import { ABOUT_TATTVA_CONTENT } from "@/lib/pricing-data";
 
 export default function Home() {
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,9 +19,42 @@ export default function Home() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
+    setIsSubmitting(true);
+    setFormError("");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || "YOUR_ACCESS_KEY_HERE",
+          subject: "New Consultation Request - Tatva Studio",
+          from_name: "Tatva Website",
+          Name: formData.name,
+          Email: formData.email,
+          Phone: formData.phone,
+          "Project Typology": formData.projectType,
+          "Site Location": formData.location,
+          "Project Scope": formData.message,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setFormSubmitted(true);
+      } else {
+        setFormError(result.message || "Something went wrong.");
+      }
+    } catch (err) {
+      setFormError("Failed to send request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollToTop = () => {
@@ -527,11 +562,17 @@ export default function Home() {
                       />
                     </div>
 
+                    {formError && (
+                      <div className="text-red-400 text-xs tracking-wider mb-4">
+                        {formError}
+                      </div>
+                    )}
                     <button
                       type="submit"
-                      className="w-full py-4 bg-[#F6EAD8] text-[#4A0A00] hover:bg-[#EBDED0] uppercase tracking-[0.25em] text-xs font-semibold transition-all duration-300 shadow-md cursor-pointer"
+                      disabled={isSubmitting}
+                      className="w-full py-4 bg-[#F6EAD8] text-[#4A0A00] hover:bg-[#EBDED0] disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-[0.25em] text-xs font-semibold transition-all duration-300 shadow-md cursor-pointer"
                     >
-                      Submit Consultation Request →
+                      {isSubmitting ? "Sending..." : "Submit Consultation Request →"}
                     </button>
                   </form>
                 )}

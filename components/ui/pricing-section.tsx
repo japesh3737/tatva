@@ -115,9 +115,49 @@ export function PricingSection() {
     navigateNext(e);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
+    setIsSubmitting(true);
+    setFormError("");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || "YOUR_ACCESS_KEY_HERE",
+          subject: `New Quotation Request for ${activePackage.name}`,
+          from_name: "Tatva Website",
+          "Selected Package": activePackage.name,
+          "Full Name": formData.fullName,
+          "Company Name": formData.companyName,
+          Email: formData.email,
+          Phone: formData.phone,
+          "Project Type": formData.projectType,
+          "Site Location": formData.location,
+          "Approx Area": formData.approxArea,
+          "Budget Range": formData.budgetRange,
+          "Project Description": formData.description,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setFormSubmitted(true);
+      } else {
+        setFormError(result.message || "Something went wrong.");
+      }
+    } catch (err) {
+      setFormError("Failed to send request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleFaq = (id: string) => {
@@ -617,11 +657,17 @@ export function PricingSection() {
                     </div>
 
                     <div className="pt-4">
+                      {formError && (
+                        <div className="text-red-400 text-xs tracking-wider mb-4 text-center">
+                          {formError}
+                        </div>
+                      )}
                       <button
                         type="submit"
-                        className="w-full py-4 bg-[#C59B6D] text-[#320700] hover:bg-[#F6EAD8] uppercase tracking-[0.25em] text-xs font-semibold transition-all duration-300 shadow-md cursor-pointer"
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-[#C59B6D] text-[#320700] hover:bg-[#F6EAD8] disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-[0.25em] text-xs font-semibold transition-all duration-300 shadow-md cursor-pointer"
                       >
-                        Submit Consultation Request →
+                        {isSubmitting ? "Sending..." : "Submit Consultation Request →"}
                       </button>
                     </div>
                   </form>
