@@ -1,6 +1,5 @@
 import React from "react";
-import fs from "fs";
-import path from "path";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -11,33 +10,10 @@ export const metadata = {
   description: "Explore our portfolio of previous architectural and interior design projects.",
 };
 
-export default async function GalleryPage() {
-  const galleryDir = path.join(process.cwd(), "public", "gallery");
-  
-  // Read all project folders
-  let projects: { name: string; images: string[] }[] = [];
-  
-  try {
-    const folders = fs.readdirSync(galleryDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
+import galleryData from "@/lib/gallery-data.json";
 
-    projects = folders.map((folderName) => {
-      const folderPath = path.join(galleryDir, folderName);
-      const allFiles = fs.readdirSync(folderPath);
-      
-      const images = allFiles
-        .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
-        .map(file => `/gallery/${encodeURIComponent(folderName)}/${encodeURIComponent(file)}`);
-        
-      return {
-        name: folderName,
-        images
-      };
-    }).filter(project => project.images.length > 0); // Only keep projects with images
-  } catch (error) {
-    console.error("Failed to read gallery directory:", error);
-  }
+export default function GalleryPage() {
+  const projects = galleryData;
 
   return (
     <main className="min-h-screen bg-[#3B0700] text-[#F6EAD8] bg-tatva-grain">
