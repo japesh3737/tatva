@@ -5,6 +5,7 @@ import { TatvaEntrance } from "@/components/ui/tatva-entrance";
 import { Button } from "@/components/ui/button";
 import { PricingSection } from "@/components/ui/pricing-section";
 import { ABOUT_TATTVA_CONTENT } from "@/lib/pricing-data";
+import Link from "next/link";
 
 export default function Home() {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -92,6 +93,9 @@ export default function Home() {
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-[11px] tracking-[0.25em] text-[#F6EAD8]/85 font-medium uppercase">
+            <Link href="/gallery" className="hover:text-[#F6EAD8] transition-colors">
+              Gallery
+            </Link>
             <a href="#interior-showcase" className="hover:text-[#F6EAD8] transition-colors">
               Walkthrough
             </a>
