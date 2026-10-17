@@ -10,18 +10,18 @@ export interface TatvaInteriorScrubProps {
   videoSrc?: string;
 
   /**
-   * Scroll input distance (in pixels) to scrub through the walkthrough clip.
-   * Defaults to 5600px for a deliberate, fluid 1.5–2 scroll feel.
+   * Scroll input distance (in pixels) across which the video scrubs end-to-end.
+   * Defaults to 2800px for a responsive, fluid, zero-fatigue scroll experience.
    */
   scrubDistance?: number;
 
   /**
-   * Section heading. Defaults to "The Interior Sanctuary".
+   * Section heading.
    */
   title?: string;
 
   /**
-   * Subtitle / description. Defaults to "A curated walkthrough of living space, natural courtyard light, and raw materiality."
+   * Subtitle / description.
    */
   subtitle?: string;
 
@@ -42,7 +42,7 @@ function clamp(v: number, min: number, max: number) {
 
 export function TatvaInteriorScrub({
   videoSrc = "/tatva-showcase.mp4",
-  scrubDistance = 5600,
+  scrubDistance = 2800,
   title = "The Interior Sanctuary",
   subtitle = "A curated walkthrough of living space, natural courtyard light, and raw materiality.",
   className = "",
@@ -55,7 +55,7 @@ export function TatvaInteriorScrub({
 
   // Video ready & playback state
   const [isReady, setIsReady] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   // Physics & seek queue state
   const targetProgressRef = useRef<number>(0);
@@ -64,16 +64,16 @@ export function TatvaInteriorScrub({
   const pendingTimeRef = useRef<number | null>(null);
   const isUserScrubbingRef = useRef<boolean>(false);
   const lastScrollTimeRef = useRef<number>(0);
-  const isPlayingRef = useRef<boolean>(false);
+  const isPlayingRef = useRef<boolean>(true);
   const isVisibleRef = useRef<boolean>(true);
 
-  // Cached layout metrics to avoid layout thrashing
+  // Cached layout metrics to prevent layout thrashing
   const layoutMetricsRef = useRef<{ top: number; range: number }>({
     top: 0,
     range: 1,
   });
 
-  // Gated seek dispatcher: prevents overlapping seeks and browser decoder stall
+  // Gated seek dispatcher: prevents overlapping seeks and browser decoder queue stalls
   const seekTo = useCallback((t: number) => {
     const video = videoRef.current;
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
@@ -85,13 +85,13 @@ export function TatvaInteriorScrub({
       return;
     }
 
-    if (Math.abs(video.currentTime - clampedTime) > 0.02) {
+    if (Math.abs(video.currentTime - clampedTime) > 0.03) {
       isSeekingRef.current = true;
       video.currentTime = clampedTime;
     }
   }, []);
 
-  // Toggle play/pause for hands-free cinematic walkthrough
+  // Toggle play/pause
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -108,7 +108,7 @@ export function TatvaInteriorScrub({
     }
   }, []);
 
-  // Update layout metrics without forced reflow during scroll
+  // Fast metric computation cached on resize and scroll initiation
   const updateLayoutMetrics = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -129,9 +129,15 @@ export function TatvaInteriorScrub({
     const onLoadedData = () => {
       setIsReady(true);
       updateLayoutMetrics();
+      if (isPlayingRef.current && isVisibleRef.current && video.paused) {
+        video.play().catch(() => {});
+      }
     };
     if (video.readyState >= 2) {
       setIsReady(true);
+      if (isPlayingRef.current && isVisibleRef.current && video.paused) {
+        video.play().catch(() => {});
+      }
     }
     video.addEventListener("loadeddata", onLoadedData);
 
@@ -159,19 +165,28 @@ export function TatvaInteriorScrub({
       targetProgressRef.current = progress;
       isUserScrubbingRef.current = true;
       lastScrollTimeRef.current = performance.now();
+
+      if (!video.paused) {
+        video.pause();
+      }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    // IntersectionObserver to pause loop/video when section is completely off-screen
+    // IntersectionObserver: Pause video and RAF when showcase is outside the viewport
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         isVisibleRef.current = entry.isIntersecting;
-        if (!entry.isIntersecting && !video.paused) {
-          video.pause();
+        if (!entry.isIntersecting) {
+          if (!video.paused) video.pause();
+        } else {
+          updateLayoutMetrics();
+          if (isPlayingRef.current && !isUserScrubbingRef.current && video.paused) {
+            video.play().catch(() => {});
+          }
         }
       },
-      { root: null, rootMargin: "100px", threshold: 0 }
+      { root: null, rootMargin: "200px", threshold: 0 }
     );
     observer.observe(container);
 
@@ -185,11 +200,11 @@ export function TatvaInteriorScrub({
 
       const now = performance.now();
 
-      // Return to hands-free playback if user stopped scrolling for > 400ms and video is set to playing
+      // Return to hands-free cinema playback if user stopped scrolling for > 1200ms and video is playing
       if (
         isUserScrubbingRef.current &&
         isPlayingRef.current &&
-        now - lastScrollTimeRef.current > 400
+        now - lastScrollTimeRef.current > 1200
       ) {
         isUserScrubbingRef.current = false;
         if (video.paused) {
@@ -197,12 +212,11 @@ export function TatvaInteriorScrub({
         }
       }
 
-      if (isUserScrubbingRef.current || !isPlayingRef.current) {
+      if (isUserScrubbingRef.current) {
         // Scrubbing mode: lerp towards target scroll position
         const diff = targetProgressRef.current - currentProgressRef.current;
         if (Math.abs(diff) > 0.0001) {
-          // Responsive 0.18 lerp coefficient for snappy yet organic physics
-          currentProgressRef.current += diff * 0.18;
+          currentProgressRef.current += diff * 0.22;
           if (video.duration && Number.isFinite(video.duration)) {
             const scrubTime = currentProgressRef.current * video.duration;
             seekTo(scrubTime);
@@ -211,19 +225,15 @@ export function TatvaInteriorScrub({
 
         // Update progress bar
         if (progressBarRef.current) {
-          progressBarRef.current.style.width = `${(
-            currentProgressRef.current * 100
-          ).toFixed(2)}%`;
+          progressBarRef.current.style.transform = `scaleX(${currentProgressRef.current})`;
         }
       } else {
-        // Cinema autoplay mode: sync scroll bar with video currentTime
+        // Continuous playback mode: sync progress bar with video currentTime
         if (video.duration && Number.isFinite(video.duration)) {
           const videoProgress = video.currentTime / video.duration;
           currentProgressRef.current = videoProgress;
           if (progressBarRef.current) {
-            progressBarRef.current.style.width = `${(videoProgress * 100).toFixed(
-              2
-            )}%`;
+            progressBarRef.current.style.transform = `scaleX(${videoProgress})`;
           }
         }
       }
@@ -233,7 +243,7 @@ export function TatvaInteriorScrub({
 
     rafId = requestAnimationFrame(renderLoop);
 
-    // Tab visibility handling
+    // Tab visibility handling: pause video when backgrounded
     const onVisibilityChange = () => {
       if (document.hidden) {
         if (!video.paused) video.pause();
@@ -276,74 +286,89 @@ export function TatvaInteriorScrub({
           src={videoSrc}
           muted
           playsInline
+          autoPlay
           preload="auto"
           loop
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none will-change-transform"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none will-change-transform transform-gpu"
           style={{
             opacity: isReady ? 1 : 0,
-            transition: "opacity 0.6s ease",
+            transition: "opacity 0.5s ease-out",
           }}
         />
 
-        {/* Cinematic Neutral Dark Gradient Overlay for Typography Contrast */}
+        {/* Subtle Architectural Atmosphere Overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(5,7,13,0.4) 0%, rgba(5,7,13,0.05) 30%, rgba(5,7,13,0.15) 70%, rgba(5,7,13,0.6) 100%)",
+              "linear-gradient(180deg, rgba(5,7,13,0.35) 0%, rgba(5,7,13,0.05) 35%, rgba(5,7,13,0.15) 70%, rgba(5,7,13,0.5) 100%)",
           }}
         />
 
+        {/* Top Floating Header with Brand Anchor & Skip Action */}
+        <header className="absolute top-0 left-0 w-full flex items-center justify-between p-6 sm:p-10 z-20 pointer-events-auto">
+          <a
+            href="#tatva-hero"
+            className="flex flex-col items-start leading-none group cursor-pointer text-[#F6EAD8]"
+          >
+            <span
+              className="text-2xl sm:text-3xl font-bold tracking-normal drop-shadow-md"
+              style={{
+                fontFamily:
+                  "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Devanagari', 'Mangal', serif",
+              }}
+            >
+              तत्व
+            </span>
+            <span className="text-[9px] sm:text-[10px] tracking-[0.35em] text-[#F6EAD8]/75 font-medium mt-1 uppercase">
+              TATVA
+            </span>
+          </a>
+
+          <a
+            href="#tatva-hero"
+            className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-medium text-[#F6EAD8]/80 hover:text-[#F6EAD8] border-b border-[#F6EAD8]/30 pb-0.5 transition-colors cursor-pointer"
+          >
+            Explore Studio ↓
+          </a>
+        </header>
+
         {/* Floating Architectural Annotation */}
-        <div className="absolute top-12 left-6 sm:left-12 z-20 max-w-xl">
+        <div className="absolute bottom-16 left-6 sm:left-12 z-20 max-w-lg pointer-events-none">
           <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-[#C59B6D] font-medium block mb-2">
             Spatial Walkthrough • Spatial Flow
           </span>
-          <h2 className="text-2xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight font-serif">
+          <h2 className="text-2xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight font-serif drop-shadow-md">
             {title}
           </h2>
-          <p className="text-xs sm:text-sm text-[#F6EAD8]/70 mt-1 max-w-md font-sans font-light leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#F6EAD8]/75 mt-1 max-w-md font-sans font-light leading-relaxed drop-shadow-sm">
             {subtitle}
           </p>
         </div>
 
-        {/* Subtle Bottom Scrub Progress Indicator & Play/Pause Controls */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-black/50 z-30">
+        {/* Clean Bottom Scrub Progress Line (GPU accelerated transform) */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F6EAD8]/15 z-30 overflow-hidden">
           <div
             ref={progressBarRef}
-            className="h-full bg-gradient-to-r from-[#F6EAD8]/70 via-[#F6EAD8] to-[#C59B6D] will-change-[width]"
-            style={{ width: "0%" }}
+            className="h-full w-full bg-gradient-to-r from-[#C59B6D] via-[#F6EAD8] to-[#C59B6D] origin-left transform-gpu will-change-transform"
+            style={{ transform: "scaleX(0)" }}
           />
         </div>
 
-        {/* Bottom Control Bar */}
-        <div className="absolute bottom-6 left-6 right-6 sm:left-12 sm:right-12 flex items-center justify-between z-20 pointer-events-auto">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={togglePlay}
-              aria-label={isPlaying ? "Pause cinematic walkthrough" : "Play continuous walkthrough"}
-              className="px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-[#F6EAD8]/20 text-[#F6EAD8] text-xs font-mono tracking-wider hover:bg-black/60 transition-colors flex items-center gap-2 cursor-pointer shadow-lg"
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isPlaying ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
-                }`}
-              />
-              <span>{isPlaying ? "PAUSE" : "PLAY"}</span>
-            </button>
-            <span className="text-[11px] text-[#F6EAD8]/60 font-mono tracking-widest hidden sm:inline-block">
-              SCROLL TO SCRUB • OR LET CINEMA PLAY
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[11px] font-mono text-[#F6EAD8]/50">
-            <span className="px-2 py-0.5 rounded border border-[#F6EAD8]/15 bg-black/20">
-              FULL HD 1080P
-            </span>
-            <span className="hidden sm:inline-block">
-              {isPlaying ? "CONTINUOUS" : "SCRUBBING"}
-            </span>
-          </div>
+        {/* Minimal Control Pill: Play / Pause Toggle */}
+        <div className="absolute bottom-6 right-6 sm:right-12 z-20 pointer-events-auto">
+          <button
+            onClick={togglePlay}
+            aria-label={isPlaying ? "Pause walkthrough" : "Play continuous walkthrough"}
+            className="px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-[#F6EAD8]/20 text-[#F6EAD8] text-xs font-mono tracking-wider hover:bg-black/60 transition-colors flex items-center gap-2 cursor-pointer shadow-lg"
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isPlaying ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+              }`}
+            />
+            <span>{isPlaying ? "PAUSE" : "PLAY"}</span>
+          </button>
         </div>
       </div>
     </section>

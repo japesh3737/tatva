@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { TatvaEntrance } from "@/components/ui/tatva-entrance";
+import { TatvaInteriorScrub } from "@/components/ui/tatva-interior-scrub";
 import { Button } from "@/components/ui/button";
 import { PricingSection } from "@/components/ui/pricing-section";
 import { ABOUT_TATTVA_CONTENT } from "@/lib/pricing-data";
@@ -64,8 +64,13 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#4A0A00] text-[#F6EAD8] selection:bg-[#F6EAD8] selection:text-[#4A0A00]">
-      {/* Scroll through the entrance before exploring the interior. */}
-      <TatvaEntrance />
+      {/* 1. INTERIOR SHOWCASE WALKTHROUGH SECTION */}
+      <TatvaInteriorScrub
+        videoSrc="/tatva-showcase.mp4"
+        scrubDistance={2800}
+        title="The Interior Sanctuary"
+        subtitle="A curated walkthrough of living space, natural courtyard light, and raw materiality."
+      />
 
       {/* 2. MAROON-AND-CREAM TATVA BRAND SECTION (Next section scrolled into) */}
       <section
