@@ -67,3 +67,9 @@ body {
   background-image: radial-gradient(rgba(246, 234, 216, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
 }
+
+/* Performance: Defer rendering work for off-screen below-the-fold sections */
+.section-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
+}

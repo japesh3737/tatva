@@ -180,7 +180,7 @@ export default function Home() {
       <div className="relative z-10 bg-[#4A0A00] bg-tatva-grain">
         <section
           id="studio-intro"
-          className="relative py-28 sm:py-36 px-6 sm:px-12 max-w-7xl mx-auto border-t border-[#F6EAD8]/15"
+          className="section-deferred relative py-28 sm:py-36 px-6 sm:px-12 max-w-7xl mx-auto border-t border-[#F6EAD8]/15"
         >
           {/* Decorative Sanskrit / Devanagari background watermark */}
           <div
@@ -221,7 +221,7 @@ export default function Home() {
         {/* 
           4. SERVICE HIGHLIGHTS (4 CARDS)
         */}
-        <section id="services" className="py-24 sm:py-32 bg-[#3B0700]/70 border-t border-[#F6EAD8]/15">
+        <section id="services" className="section-deferred py-24 sm:py-32 bg-[#3B0700]/70 border-t border-[#F6EAD8]/15">
           <div className="max-w-7xl mx-auto px-6 sm:px-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
               <div>
@@ -316,7 +316,7 @@ export default function Home() {
         {/* 
           5. MATERIAL SYMPHONY
         */}
-        <section id="materiality" className="py-24 sm:py-32 px-6 sm:px-12 max-w-7xl mx-auto border-t border-[#F6EAD8]/15">
+        <section id="materiality" className="section-deferred py-24 sm:py-32 px-6 sm:px-12 max-w-7xl mx-auto border-t border-[#F6EAD8]/15">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-[11px] uppercase tracking-[0.35em] text-[#C59B6D] font-medium block mb-3">
               Sensory Palette • स्पर्श
@@ -380,7 +380,7 @@ export default function Home() {
         {/* 
           6. CONTACT & CONSULTATION CTA
         */}
-        <section id="contact" className="py-24 sm:py-32 bg-[#320700] border-t border-[#F6EAD8]/15">
+        <section id="contact" className="section-deferred py-24 sm:py-32 bg-[#320700] border-t border-[#F6EAD8]/15">
           <div className="max-w-6xl mx-auto px-6 sm:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
               {/* Studio Contact Information */}

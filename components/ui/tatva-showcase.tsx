@@ -84,6 +84,7 @@ export function TatvaShowcase({
   const isPlayingRef = useRef(false);
   const isVisibleRef = useRef(true);
   const lastRenderedDoorTimeRef = useRef(-1);
+  const wakeLoopRef = useRef<() => void>(() => {});
 
   // WebGL context and handles
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -107,7 +108,7 @@ export function TatvaShowcase({
     };
   }, []);
 
-  // Gated seek for door video
+  // Gated seek for door video with hardware fastSeek fallback
   const seekDoor = useCallback((time: number) => {
     const v = doorVideoRef.current;
     if (!v || !Number.isFinite(v.duration) || v.duration <= 0) return;
@@ -119,11 +120,15 @@ export function TatvaShowcase({
     }
     if (Math.abs(v.currentTime - clamped) > 0.02) {
       isDoorSeekingRef.current = true;
-      v.currentTime = clamped;
+      if ("fastSeek" in v && typeof (v as any).fastSeek === "function") {
+        (v as any).fastSeek(clamped);
+      } else {
+        v.currentTime = clamped;
+      }
     }
   }, []);
 
-  // Gated seek for interior walkthrough video
+  // Gated seek for interior walkthrough video with hardware fastSeek fallback
   const seekInterior = useCallback((time: number) => {
     const v = interiorVideoRef.current;
     if (!v || !Number.isFinite(v.duration) || v.duration <= 0) return;
@@ -135,7 +140,11 @@ export function TatvaShowcase({
     }
     if (Math.abs(v.currentTime - clamped) > 0.03) {
       isInteriorSeekingRef.current = true;
-      v.currentTime = clamped;
+      if ("fastSeek" in v && typeof (v as any).fastSeek === "function") {
+        (v as any).fastSeek(clamped);
+      } else {
+        v.currentTime = clamped;
+      }
     }
   }, []);
 
@@ -162,6 +171,7 @@ export function TatvaShowcase({
     if (v.paused) {
       isPlayingRef.current = true;
       setIsPlaying(true);
+      wakeLoopRef.current();
       v.play().catch(() => {});
     } else {
       v.pause();
@@ -347,6 +357,8 @@ export function TatvaShowcase({
         isPlayingRef.current = false;
         setIsPlaying(false);
       }
+
+      wakeLoop();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", updateMetrics, { passive: true });
@@ -361,23 +373,28 @@ export function TatvaShowcase({
           if (!interiorVideo.paused) interiorVideo.pause();
         } else {
           updateMetrics();
+          wakeLoop();
         }
       },
       { root: null, rootMargin: "200px", threshold: 0 }
     );
     observer.observe(container);
 
-    // 60FPS Lerp Animation Loop
+    // 60FPS Lerp Animation Loop with Idle Sleep (0% CPU when stationary)
     let rafId: number;
+    let isLoopRunning = false;
+
     const renderLoop = () => {
       if (!isVisibleRef.current) {
-        rafId = requestAnimationFrame(renderLoop);
+        isLoopRunning = false;
         return;
       }
 
       // Smooth lerp damping (0.22 coefficient for buttery responsiveness)
       const diff = targetProgressRef.current - currentProgressRef.current;
-      if (Math.abs(diff) > 0.0001) {
+      const isSettled = Math.abs(diff) <= 0.0001;
+
+      if (!isSettled) {
         currentProgressRef.current += diff * 0.22;
       } else {
         currentProgressRef.current = targetProgressRef.current;
@@ -427,13 +444,28 @@ export function TatvaShowcase({
         progressBarRef.current.style.transform = `scaleX(${p})`;
       }
 
+      // If settled and interior video is not playing, sleep RAF loop to save 100% idle CPU
+      if (isSettled && !isPlayingRef.current) {
+        isLoopRunning = false;
+        return;
+      }
+
       rafId = requestAnimationFrame(renderLoop);
     };
 
-    rafId = requestAnimationFrame(renderLoop);
+    const wakeLoop = () => {
+      if (!isLoopRunning && isVisibleRef.current) {
+        isLoopRunning = true;
+        rafId = requestAnimationFrame(renderLoop);
+      }
+    };
+    wakeLoopRef.current = wakeLoop;
+
+    wakeLoop();
 
     return () => {
       cancelAnimationFrame(rafId);
+      isLoopRunning = false;
       observer.disconnect();
       doorVideo.removeEventListener("loadeddata", onDoorLoaded);
       doorVideo.removeEventListener("seeked", onDoorSeeked);
@@ -458,7 +490,11 @@ export function TatvaShowcase({
       {/* Sticky Full-Viewport Container (Native compositor-thread pinning) */}
       <div
         ref={stickyRef}
-        className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden select-none bg-[#05070D]"
+        className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden select-none bg-[#05070D] transform-gpu"
+        style={{
+          contain: "paint layout",
+          willChange: "transform",
+        }}
       >
         {/* 
           LAYER 1: Interior Walkthrough Video (Positioned directly behind the door)

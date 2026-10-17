@@ -168,7 +168,7 @@ export function PricingSection() {
     <section
       id="pricing"
       aria-label="Packages, Pricing and Consultation Scope"
-      className="relative z-10 py-24 sm:py-32 bg-[#3B0700] text-[#F6EAD8] bg-tatva-grain border-t border-[#F6EAD8]/15 overflow-hidden"
+      className="section-deferred relative z-10 py-24 sm:py-32 bg-[#3B0700] text-[#F6EAD8] bg-tatva-grain border-t border-[#F6EAD8]/15 overflow-hidden"
     >
       {/* Subtle Background Architectural Detailing */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.04]">
@@ -267,9 +267,12 @@ export function PricingSection() {
                       <img
                         loading="lazy"
                         decoding="async"
+                        width={800}
+                        height={600}
                         src={imgObj.src}
                         alt={imgObj.alt}
                         className="w-full h-full object-cover object-center"
+                        style={{ aspectRatio: "16/10" }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#4A0A00] via-[#4A0A00]/20 to-transparent" />
                     </div>
