@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { TatvaDoorIntro } from "@/components/ui/tatva-door-intro";
 import { TatvaInteriorScrub } from "@/components/ui/tatva-interior-scrub";
 import { Button } from "@/components/ui/button";
 import { PricingSection } from "@/components/ui/pricing-section";
@@ -64,10 +65,18 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#4A0A00] text-[#F6EAD8] selection:bg-[#F6EAD8] selection:text-[#4A0A00]">
-      {/* 1. INTERIOR SHOWCASE WALKTHROUGH SECTION */}
+      {/* 0. DOOR INTRO CHROMA-KEY VIDEO LAYER (Top full-screen layer) */}
+      <TatvaDoorIntro
+        videoSrc="/door.mp4"
+        scrubDistance={1100}
+        doorOpenDuration={8.0}
+        crossfadeStartProgress={0.88}
+      />
+
+      {/* 1. INTERIOR SHOWCASE WALKTHROUGH SECTION (Only changes on scroll) */}
       <TatvaInteriorScrub
         videoSrc="/tatva-showcase.mp4"
-        scrubDistance={2800}
+        scrubDistance={3200}
         title="The Interior Sanctuary"
         subtitle="A curated walkthrough of living space, natural courtyard light, and raw materiality."
       />

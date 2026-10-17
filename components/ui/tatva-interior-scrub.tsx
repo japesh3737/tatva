@@ -11,7 +11,7 @@ export interface TatvaInteriorScrubProps {
 
   /**
    * Scroll input distance (in pixels) across which the video scrubs end-to-end.
-   * Defaults to 2800px for a responsive, fluid, zero-fatigue scroll experience.
+   * Defaults to 3200px for a responsive, fluid, zero-fatigue scroll experience.
    */
   scrubDistance?: number;
 
@@ -42,7 +42,7 @@ function clamp(v: number, min: number, max: number) {
 
 export function TatvaInteriorScrub({
   videoSrc = "/tatva-showcase.mp4",
-  scrubDistance = 2800,
+  scrubDistance = 3200,
   title = "The Interior Sanctuary",
   subtitle = "A curated walkthrough of living space, natural courtyard light, and raw materiality.",
   className = "",
@@ -53,9 +53,9 @@ export function TatvaInteriorScrub({
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  // Video ready & playback state
+  // Video ready & playback state - Default is false so video does NOT autoplay automatically
   const [isReady, setIsReady] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Physics & seek queue state
   const targetProgressRef = useRef<number>(0);
@@ -63,8 +63,7 @@ export function TatvaInteriorScrub({
   const isSeekingRef = useRef<boolean>(false);
   const pendingTimeRef = useRef<number | null>(null);
   const isUserScrubbingRef = useRef<boolean>(false);
-  const lastScrollTimeRef = useRef<number>(0);
-  const isPlayingRef = useRef<boolean>(true);
+  const isPlayingRef = useRef<boolean>(false);
   const isVisibleRef = useRef<boolean>(true);
 
   // Cached layout metrics to prevent layout thrashing
@@ -91,7 +90,7 @@ export function TatvaInteriorScrub({
     }
   }, []);
 
-  // Toggle play/pause
+  // Toggle play/pause - manual user override
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -129,14 +128,15 @@ export function TatvaInteriorScrub({
     const onLoadedData = () => {
       setIsReady(true);
       updateLayoutMetrics();
-      if (isPlayingRef.current && isVisibleRef.current && video.paused) {
-        video.play().catch(() => {});
+      // Ensure video stays paused initially and paints the initial frame
+      if (!isPlayingRef.current && !video.paused) {
+        video.pause();
       }
     };
     if (video.readyState >= 2) {
       setIsReady(true);
-      if (isPlayingRef.current && isVisibleRef.current && video.paused) {
-        video.play().catch(() => {});
+      if (!isPlayingRef.current && !video.paused) {
+        video.pause();
       }
     }
     video.addEventListener("loadeddata", onLoadedData);
@@ -164,10 +164,12 @@ export function TatvaInteriorScrub({
       const progress = clamp((scrollY - top) / range, 0, 1);
       targetProgressRef.current = progress;
       isUserScrubbingRef.current = true;
-      lastScrollTimeRef.current = performance.now();
 
+      // When the user scrolls, immediately pause video if it was playing
       if (!video.paused) {
         video.pause();
+        isPlayingRef.current = false;
+        setIsPlaying(false);
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -181,9 +183,6 @@ export function TatvaInteriorScrub({
           if (!video.paused) video.pause();
         } else {
           updateLayoutMetrics();
-          if (isPlayingRef.current && !isUserScrubbingRef.current && video.paused) {
-            video.play().catch(() => {});
-          }
         }
       },
       { root: null, rootMargin: "200px", threshold: 0 }
@@ -198,22 +197,8 @@ export function TatvaInteriorScrub({
         return;
       }
 
-      const now = performance.now();
-
-      // Return to hands-free cinema playback if user stopped scrolling for > 1200ms and video is playing
-      if (
-        isUserScrubbingRef.current &&
-        isPlayingRef.current &&
-        now - lastScrollTimeRef.current > 1200
-      ) {
-        isUserScrubbingRef.current = false;
-        if (video.paused) {
-          video.play().catch(() => {});
-        }
-      }
-
-      if (isUserScrubbingRef.current) {
-        // Scrubbing mode: lerp towards target scroll position
+      if (isUserScrubbingRef.current || !isPlayingRef.current) {
+        // Scrubbing mode: video changes ONLY as the user scrolls
         const diff = targetProgressRef.current - currentProgressRef.current;
         if (Math.abs(diff) > 0.0001) {
           currentProgressRef.current += diff * 0.22;
@@ -228,7 +213,7 @@ export function TatvaInteriorScrub({
           progressBarRef.current.style.transform = `scaleX(${currentProgressRef.current})`;
         }
       } else {
-        // Continuous playback mode: sync progress bar with video currentTime
+        // Continuous playback mode (only if user manually clicked PLAY button)
         if (video.duration && Number.isFinite(video.duration)) {
           const videoProgress = video.currentTime / video.duration;
           currentProgressRef.current = videoProgress;
@@ -245,10 +230,8 @@ export function TatvaInteriorScrub({
 
     // Tab visibility handling: pause video when backgrounded
     const onVisibilityChange = () => {
-      if (document.hidden) {
-        if (!video.paused) video.pause();
-      } else if (isPlayingRef.current && isVisibleRef.current) {
-        video.play().catch(() => {});
+      if (document.hidden && !video.paused) {
+        video.pause();
       }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
@@ -280,13 +263,12 @@ export function TatvaInteriorScrub({
         ref={stickyRef}
         className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden select-none bg-[#05070D]"
       >
-        {/* Stable Hardware-Accelerated Native Video Player */}
+        {/* Stable Hardware-Accelerated Native Video Player (Muted, no autoPlay, scrubs on scroll) */}
         <video
           ref={videoRef}
           src={videoSrc}
           muted
           playsInline
-          autoPlay
           preload="auto"
           loop
           className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none will-change-transform transform-gpu"
@@ -336,7 +318,7 @@ export function TatvaInteriorScrub({
         {/* Floating Architectural Annotation */}
         <div className="absolute bottom-16 left-6 sm:left-12 z-20 max-w-lg pointer-events-none">
           <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-[#C59B6D] font-medium block mb-2">
-            Spatial Walkthrough • Spatial Flow
+            Spatial Walkthrough • Scroll to Scrub
           </span>
           <h2 className="text-2xl sm:text-4xl font-light text-[#F6EAD8] tracking-tight font-serif drop-shadow-md">
             {title}
