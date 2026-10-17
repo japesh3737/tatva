@@ -66,12 +66,10 @@ export function TatvaShowcase({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const doorVideoRef = useRef<HTMLVideoElement>(null);
   const interiorVideoRef = useRef<HTMLVideoElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Ready states
   const [doorReady, setDoorReady] = useState(false);
   const [interiorReady, setInteriorReady] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [uiVisible, setUiVisible] = useState(true);
 
   // Physics & seeking state
@@ -170,13 +168,11 @@ export function TatvaShowcase({
 
     if (v.paused) {
       isPlayingRef.current = true;
-      setIsPlaying(true);
       wakeLoopRef.current();
       v.play().catch(() => {});
     } else {
       v.pause();
       isPlayingRef.current = false;
-      setIsPlaying(false);
     }
   }, []);
 
@@ -355,7 +351,6 @@ export function TatvaShowcase({
       if (!interiorVideo.paused) {
         interiorVideo.pause();
         isPlayingRef.current = false;
-        setIsPlaying(false);
       }
 
       wakeLoop();
@@ -437,11 +432,6 @@ export function TatvaShowcase({
             seekInterior(interiorNorm * interiorVideo.duration);
           }
         }
-      }
-
-      // Sync progress bar
-      if (progressBarRef.current) {
-        progressBarRef.current.style.transform = `scaleX(${p})`;
       }
 
       // If settled and interior video is not playing, sleep RAF loop to save 100% idle CPU
@@ -593,27 +583,13 @@ export function TatvaShowcase({
             uiVisible ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className="flex flex-col items-center space-y-3 mb-12">
+          <div className="flex flex-col items-center space-y-3">
             <h1 className="text-3xl md:text-6xl font-serif tracking-[0.22em] text-[#F6EAD8] drop-shadow-md">
               TATVA
             </h1>
             <p className="text-[10px] md:text-xs uppercase tracking-[0.38em] text-[#F6EAD8]/70">
               Where Spaces Take Shape
             </p>
-          </div>
-
-          <div className="flex items-center gap-3 px-6 py-2.5 rounded-full border border-[#F6EAD8]/25 bg-black/40 backdrop-blur-md shadow-lg">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-[#F6EAD8] font-light">
-              Scroll Down to Open
-            </span>
-            <svg
-              className="w-3.5 h-3.5 text-[#F6EAD8]/80 animate-bounce"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-            </svg>
           </div>
         </div>
 
@@ -628,31 +604,6 @@ export function TatvaShowcase({
           <p className="text-xs sm:text-sm text-[#F6EAD8]/75 mt-1 max-w-md font-sans font-light leading-relaxed drop-shadow-sm">
             A curated walkthrough of living space, natural courtyard light, and raw materiality.
           </p>
-        </div>
-
-        {/* Clean GPU-Accelerated Bottom Scrub Progress Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F6EAD8]/15 z-30 overflow-hidden">
-          <div
-            ref={progressBarRef}
-            className="h-full w-full bg-gradient-to-r from-[#C59B6D] via-[#F6EAD8] to-[#C59B6D] origin-left transform-gpu will-change-transform"
-            style={{ transform: "scaleX(0)" }}
-          />
-        </div>
-
-        {/* Minimal Control Pill: Play / Pause Toggle (Bottom Right) */}
-        <div className="absolute bottom-8 right-6 sm:right-12 z-20 pointer-events-auto">
-          <button
-            onClick={togglePlay}
-            aria-label={isPlaying ? "Pause walkthrough" : "Play continuous walkthrough"}
-            className="px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-[#F6EAD8]/20 text-[#F6EAD8] text-xs font-mono tracking-wider hover:bg-black/60 transition-colors flex items-center gap-2 cursor-pointer shadow-lg"
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isPlaying ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
-              }`}
-            />
-            <span>{isPlaying ? "PAUSE" : "PLAY"}</span>
-          </button>
         </div>
       </div>
     </section>
