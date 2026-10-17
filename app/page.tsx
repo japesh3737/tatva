@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { TatvaDoorIntro } from "@/components/ui/tatva-door-intro";
-import { TatvaInteriorScrub } from "@/components/ui/tatva-interior-scrub";
+import { TatvaShowcase } from "@/components/ui/tatva-showcase";
 import { Button } from "@/components/ui/button";
 import { PricingSection } from "@/components/ui/pricing-section";
 import { ABOUT_TATTVA_CONTENT } from "@/lib/pricing-data";
@@ -65,20 +64,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#4A0A00] text-[#F6EAD8] selection:bg-[#F6EAD8] selection:text-[#4A0A00]">
-      {/* 0. DOOR INTRO CHROMA-KEY VIDEO LAYER (Top full-screen layer) */}
-      <TatvaDoorIntro
-        videoSrc="/door.mp4"
-        scrubDistance={1100}
-        doorOpenDuration={8.0}
-        crossfadeStartProgress={0.88}
-      />
-
-      {/* 1. INTERIOR SHOWCASE WALKTHROUGH SECTION (Only changes on scroll) */}
-      <TatvaInteriorScrub
-        videoSrc="/tatva-showcase.mp4"
-        scrubDistance={3200}
-        title="The Interior Sanctuary"
-        subtitle="A curated walkthrough of living space, natural courtyard light, and raw materiality."
+      {/* 1. SEAMLESS DOOR OPENING & INTERIOR WALKTHROUGH SHOWCASE */}
+      <TatvaShowcase
+        doorVideoSrc="/door.mp4"
+        showcaseVideoSrc="/tatva-showcase.mp4"
+        doorScrollDistance={1400}
+        walkthroughScrollDistance={3000}
       />
 
       {/* 2. MAROON-AND-CREAM TATVA BRAND SECTION (Next section scrolled into) */}
