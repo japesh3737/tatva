@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone } from "lucide-react";
+import ContactForm from "./ContactForm";
 
 export const metadata = {
   title: "Contact | Tatva Studio",
   description: "Get in touch with Tatva Studio by phone or email.",
 };
 
-// Change these two values if the contact details ever change.
+// Change these values if the contact details ever change.
 const PHONE_DISPLAY = "+91 89284 66820";
 const PHONE_LINK = "+918928466820";
-const EMAIL = "realhrishikeshmishra@gmail.com"; // check this against the note
+const EMAIL = "realhrishikeshmishra@gmail.com";
 
 export default function ContactPage() {
   return (
@@ -66,6 +67,8 @@ export default function ContactPage() {
             <p className="mt-2 text-xl break-all">{EMAIL}</p>
           </a>
         </div>
+
+        <ContactForm />
       </section>
     </main>
   );
