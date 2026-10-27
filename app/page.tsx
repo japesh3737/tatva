@@ -101,6 +101,9 @@ export default function Home() {
             <Link href="/gallery" className="hover:text-[#F6EAD8] transition-colors">
               Gallery
             </Link>
+            <Link href="/blog" className="hover:text-[#F6EAD8] transition-colors">
+              Blog
+            </Link>
             <a href="#interior-showcase" className="hover:text-[#F6EAD8] transition-colors">
               Walkthrough
             </a>
